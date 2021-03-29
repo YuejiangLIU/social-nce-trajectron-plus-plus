@@ -1,0 +1,17 @@
+matplotlib
+numpy
+pandas
+scipy
+seaborn
+tensorboard==1.14.0
+tensorboardX==1.8
+pyquaternion==0.9.5
+pytest==5.3.0
+orjson==3.5.1
+ncls==0.0.51
+dill==0.3.1.1
+tqdm
+notebook
+scikit-learn
+opencv-python
+nuscenes-devkit==1.0.6
