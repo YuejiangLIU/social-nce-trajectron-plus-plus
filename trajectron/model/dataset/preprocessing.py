@@ -126,12 +126,9 @@ def get_node_timestep_data(env, scene, t, node, state, pred_state,
         neighbors_edge_value = dict()
 
         cnt_neighbors = 0
-        try:
-            neighbors_prev_t = torch.empty(hyperparams['max_num_neighbors'], max_ht+1, 6).fill_(float('nan'))
-            neighbors_next_t = torch.empty(hyperparams['max_num_neighbors'], max_ft, 6).fill_(float('nan'))
-        except:
-            neighbors_prev_t = torch.empty(30, max_ht+1, 6).fill_(float('nan'))                               # TODO: hp
-            neighbors_next_t = torch.empty(30, max_ft, 6).fill_(float('nan'))                               # TODO: hp
+        max_num_neighbors = 30      # large enough for placeholder of neighbors
+        neighbors_prev_t = torch.empty(max_num_neighbors, max_ht+1, 6).fill_(float('nan'))
+        neighbors_next_t = torch.empty(max_num_neighbors, max_ft, 6).fill_(float('nan'))
 
         for edge_type in edge_types:
             neighbors_data_st[edge_type] = list()

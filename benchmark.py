@@ -41,7 +41,7 @@ def main():
 	args = parse_args()
 	print(args.dataset)
 
-	foldername = 'experiments/pedestrians/models/models_' + args.dataset + '_vel'
+	foldername = 'experiments/pedestrians/models/snce_' + args.dataset + '_vel'
 
 	filevanilla = glob.glob(os.path.join(foldername, '*_0.0000.csv'))[0]
 	df_vanilla = load_dataframe(filevanilla, args.last_num)
@@ -63,7 +63,7 @@ def main():
 		print('')
 
 		gain_ade, gain_fde, gain_col = compare(df_vanilla, df_snce)
-		print("Weight: {:.4f} \t ADE: {:.2f}%, FDE: {:.2f}%, COL: {:.2f}%".format(args.weight, gain_ade.mean() * 100, gain_fde.mean() * 100, gain_col.mean() * 100))
+		print("Weight: {:.4f} \t ADE: {:.2f}%, FDE: {:.2f}%, COL: {:.2f}%".format(args.weight, gain_ade * 100, gain_fde * 100, gain_col * 100))
 
 	else:
 		flist = glob.glob(os.path.join(foldername, '*.csv'))

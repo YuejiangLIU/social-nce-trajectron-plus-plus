@@ -412,6 +412,5 @@ dmypy.json
 # Results
 experiments/nuScenes
 experiments/processed
-experiments/pedestrians/models
 experiments/pedestrians/raw
 experiments/pedestrians/results

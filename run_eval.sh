@@ -20,7 +20,7 @@ cd experiments/pedestrians
 
 MODEL=vel
 PREFIX=models
-FOLDERNAME=${PREFIX}/models_${DATASET}_${MODEL}
+FOLDERNAME=${PREFIX}/snce_${DATASET}_${MODEL}
 OPTDIR=results
 
 ###########################

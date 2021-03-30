@@ -89,9 +89,6 @@ def main():
         hyperparams['augment'] = args.augment
         hyperparams['override_attention_radius'] = args.override_attention_radius
 
-    hyperparams['max_num_neighbors'] = args.max_num_neighbors
-    hyperparams['contrastive_weight'] = args.contrastive_weight
-    
     print('-----------------------')
     print('| TRAINING PARAMETERS |')
     print('-----------------------')
@@ -107,7 +104,7 @@ def main():
     print('| edge_removal_filter: %s' % args.edge_removal_filter)
     print('| MHL: %s' % hyperparams['minimum_history_length'])
     print('| PH: %s' % hyperparams['prediction_horizon'])
-    print('| Weight: %s' % hyperparams['contrastive_weight'])
+    print('| Weight: %s' % args.contrastive_weight)
     print('-----------------------')
 
     log_writer = None
@@ -118,8 +115,7 @@ def main():
         else:
             # Create the log and model directiory if they're not present.
             model_dir = os.path.join(args.log_dir,
-                                     # 'models_' + time.strftime('%d_%b_%Y_%H_%M_%S', time.localtime()) + args.log_tag)
-                                     'models' + args.log_tag)
+                                     'snce' + args.log_tag)
             pathlib.Path(model_dir).mkdir(parents=True, exist_ok=True)
 
             # Save config to model directory
@@ -145,6 +141,8 @@ def main():
 
     train_scenes = train_env.scenes
     train_scenes_sample_probs = train_env.scenes_freq_mult_prop if args.scene_freq_mult_train else None
+
+    hyperparams['contrastive_weight'] = args.contrastive_weight
 
     train_dataset = EnvironmentDataset(train_env,
                                        hyperparams['state'],
