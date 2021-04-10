@@ -49,9 +49,15 @@ bash scripts/run_train.sh ${DATASET} && bash bash scripts/run_eval.sh ${DATASET}
 
 #### Comparison ####
 
-To search for hyper-parameters on different datasets, run the [bash scripts](scripts):
+To search for hyper-parameters on different datasets, run the following [bash scripts](scripts):
 ```bash
 bash scripts/run_<dataset>.sh
+```
+
+Our [pre-trained models](https://drive.google.com/file/d/1APAIlgJS9BDZHFCvwMrfzj9z_9DSS6LB/view?usp=sharing) can be downloaded as follows:
+```bash
+gdown https://drive.google.com/uc?id=1APAIlgJS9BDZHFCvwMrfzj9z_9DSS6LB
+unzip pretrained_trajectron++.zip -d experiments/pedestrians/models
 ```
 
 To compare different models, run the following command:
@@ -61,7 +67,9 @@ python benchmark.py --dataset ${DATASET}
 
 ### Basic Results ###
 
-The scripts above yield the following results (on GeForce RTX 3090). The result may subject to [mild variance](https://github.com/StanfordASL/Trajectron-plus-plus/issues/38#issuecomment-810612481) on different GPU devices. Our method reduces the collision rate of the Trajectron++ by more than 45%, without degrading its performance in terms of prediction accuracy and diversity.
+The scripts above yield the following results (on GeForce RTX 3090). The result may subject to [mild variance](https://github.com/StanfordASL/Trajectron-plus-plus/issues/38#issuecomment-810612481) on different GPU devices.
+
+On average, our method reduces the collision rate of the Trajectron++ by over 45%, without degrading its performance in terms of prediction accuracy and diversity.
 
 <table>
 <!-- START TABLE -->

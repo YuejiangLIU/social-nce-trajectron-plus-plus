@@ -20,7 +20,7 @@ def parse_args():
 	                    default=300)
 	parser.add_argument("--window_best",
 	                    type=int,
-	                    default=3)
+	                    default=5)
 	args = parser.parse_args()
 	return args
 
@@ -41,9 +41,18 @@ def relative(df_baseline, df_candidate):
 	gain_col = (df_baseline['COL'] - df_candidate['COL']) / (df_baseline['COL'] + 1e-8)
 	return gain_ade, gain_fde, gain_col
 
-def select(df):
-	index = (df['ADE'] + df['FDE'] + df['COL']).argmin()
-	return index
+def select(df, window):
+	index_best = (df['ADE'] + df['FDE'] + df['COL']).argmin()
+	# local window
+	index_min = index_best - (window - 1) // 2
+	index_max = index_min + window
+	if index_min < 0:
+		index_min = 0
+		index_max = window
+	if index_max > df.shape[0] - 1:
+		index_max = df.shape[0]
+		index_min = index_max - window
+	return index_best, (index_min, index_max)
 
 def compare(foldername, args):
 
@@ -78,14 +87,14 @@ def compare(foldername, args):
 		print("       \t      \t ---------------------\t --------------------- \t \t -----------------------------\t ---------------------")
 		print("Method \tWeight\t  ADE \t  FDE \t  COL \t  ADE \t  FDE \t  COL \t \t Epoch \t  ADE \t  FDE \t  COL \t  ADE \t  FDE \t  COL ")
 
-		idx_best_vanilla = select(df_vanilla)
+		idx_best_vanilla, window_best_vanilla = select(df_vanilla, args.window_best)
 		best_vanilla = df_vanilla.iloc[idx_best_vanilla, :]
-		avg_vanilla = df_vanilla.iloc[max(0, idx_best_vanilla-args.window_best):idx_best_vanilla+args.window_best, :].mean()
+		avg_vanilla = df_vanilla.iloc[window_best_vanilla[0]:window_best_vanilla[1], :].mean()
 
 		print("Vanilla\t 0.00 \t {:.3f} \t {:.3f} \t {:.3f} \t   x \t   x \t   x \t \t  {:.0f} \t {:.3f} \t {:.3f} \t {:.3f} \t   x \t   x \t   x".format(avg_vanilla['ADE'], avg_vanilla['FDE'], avg_vanilla['COL'] * 100, best_vanilla['Epoch'], best_vanilla['ADE'], best_vanilla['FDE'], best_vanilla['COL'] * 100))
 
-		metric_vanilla = (avg_vanilla['FDE'], avg_vanilla['COL'])
-		metric_snce = (float('inf'), float('inf'))	# FDE & COL
+		metric_vanilla = (avg_vanilla['ADE'], avg_vanilla['FDE'], avg_vanilla['COL'])
+		metric_snce = (float('inf'), float('inf'), float('inf'))	# FDE & COL
 		weight_snce = float('nan')
 
 		for filename in flist:
@@ -93,17 +102,17 @@ def compare(foldername, args):
 			weight = float(filename.split('_')[-1][:-4])
 			df_snce = load_dataframe(filename, epoch_list)
 
-			idx_best_snce = select(df_snce)
+			idx_best_snce, window_best_snce = select(df_snce, args.window_best)
 			best_snce = df_snce.iloc[idx_best_snce, :]
-			avg_snce = df_snce.iloc[max(0, idx_best_snce-args.window_best):idx_best_snce+args.window_best, :].mean()
+			avg_snce = df_snce.iloc[window_best_snce[0]:window_best_snce[1], :].mean()
 
 			gain_best_ade, gain_best_fde, gain_best_col = relative(best_vanilla, best_snce)
 			gain_avg_ade, gain_avg_fde, gain_avg_col = relative(avg_vanilla, avg_snce)
 
 			print("S-NCE \t {:.3f}\t {:.3f} \t {:.3f} \t {:.3f} \t {:.1f}%\t {:.1f}%\t {:.1f}%     \t  {:.0f} \t {:.3f} \t {:.3f} \t {:.3f} \t {:.1f}%\t {:.1f}%\t {:.1f}%".format(weight, avg_snce['ADE'], avg_snce['FDE'], avg_snce['COL'] * 100, gain_avg_ade * 100, gain_avg_fde * 100, gain_avg_col * 100, best_snce['Epoch'], best_snce['ADE'], best_snce['FDE'], best_snce['COL']  * 100, gain_best_ade * 100, gain_best_fde * 100, gain_best_col * 100))
 
-			if metric_snce[0] + metric_snce[1] * 100 > avg_snce['FDE'] + avg_snce['COL'] * 100:
-				metric_snce = (avg_snce['FDE'], avg_snce['COL'])
+			if metric_snce[0] + metric_snce[1] + metric_snce[2] * 100 > avg_snce['ADE'] + avg_snce['FDE'] + avg_snce['COL'] * 100:
+				metric_snce = (avg_snce['ADE'], avg_snce['FDE'], avg_snce['COL'])
 				weight_snce = weight
 
 		print('Optimal Weight:', weight_snce, '\n')
@@ -118,9 +127,9 @@ def main():
 		for dataset in ['eth', 'hotel', 'univ', 'zara1', 'zara2']:
 			print("Dataset:", dataset)
 			foldername = 'experiments/pedestrians/models/snce_' + dataset + '_vel'
-			(fde_vanilla, col_vanilla), (fde_snce, col_snce) = compare(foldername, args)
-			result.append([dataset, fde_vanilla, col_vanilla * 100, fde_snce, col_snce * 100, (1 - col_snce / col_vanilla) * 100 ])
-		df = pd.DataFrame(result, columns=['Dataset', 'FDE-Vanilla', 'COL-Vanilla', 'FDE-SNCE', 'COL-SNCE', 'COL-Gain']).set_index('Dataset')
+			(ade_vanilla, fde_vanilla, col_vanilla), (ade_snce, fde_snce, col_snce) = compare(foldername, args)
+			result.append([dataset, ade_vanilla, fde_vanilla, col_vanilla * 100, ade_snce, fde_snce, col_snce * 100, (1 - col_snce / col_vanilla) * 100 ])
+		df = pd.DataFrame(result, columns=['Dataset', 'ADE-Vanilla', 'FDE-Vanilla', 'COL-Vanilla', 'ADE-SNCE', 'FDE-SNCE', 'COL-SNCE', 'COL-Gain']).set_index('Dataset')
 		df.loc['Avg'] = df.mean()
 		print(df)
 	else:
