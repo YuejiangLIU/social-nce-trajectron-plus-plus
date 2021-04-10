@@ -37,17 +37,22 @@ DATASET=univ
 
 The vanilla Trajectron++ model can be trained and evaluated as follows: 
 ```bash
-bash run_train.sh ${DATASET} 0.0 && bash run_eval.sh ${DATASET} 0.0
+bash scripts/run_train.sh ${DATASET} 0.0 && bash scripts/run_eval.sh ${DATASET} 0.0
 ```
 
 #### Contrastive ####
 
 To train the Trajectron++ with Social-NCE, run the following command:
 ```bash
-bash run_train.sh ${DATASET} && bash run_eval.sh ${DATASET}
+bash scripts/run_train.sh ${DATASET} && bash bash scripts/run_eval.sh ${DATASET}
 ```
 
 #### Comparison ####
+
+To search for hyper-parameters on different datasets, run the [bash scripts](scripts):
+```bash
+bash scripts/run_<dataset>.sh
+```
 
 To compare different models, run the following command:
 ```bash
@@ -56,7 +61,7 @@ python benchmark.py --dataset ${DATASET}
 
 ### Basic Results ###
 
-The scripts above yield the following results (on GeForce RTX 3090). The result may subject to mild variance on different GPU devices. More details will be released soon!
+The scripts above yield the following results (on GeForce RTX 3090). The result may subject to [mild variance](https://github.com/StanfordASL/Trajectron-plus-plus/issues/38#issuecomment-810612481) on different GPU devices. Our method reduces the collision rate of the Trajectron++ by more than 45%, without degrading its performance in terms of prediction accuracy and diversity.
 
 <table>
 <!-- START TABLE -->
@@ -79,41 +84,59 @@ The scripts above yield the following results (on GeForce RTX 3090). The result 
 <!-- TABLE BODY -->
 <tbody>
   <tr>
-    <td align="center">80</td>
-    <td align="center">0.215</td>
-    <td align="center">0.461</td>
-    <td align="center">4.942</td>
-    <td align="center">0.211</td>
-    <td align="center">0.460</td>
-    <td align="center">3.605</td>
+    <td align="center">ETH</td>
+    <td align="center">0.388</td>
+    <td align="center">0.810</td>
+    <td align="center">1.156</td>
+    <td align="center">0.386</td>
+    <td align="center">0.791</td>
+    <td align="center">0.000</td>
   </tr>
   <tr>
-    <td align="center">90</td>
-    <td align="center">0.208</td>
-    <td align="center">0.453</td>
-    <td align="center">4.527</td>
-    <td align="center">0.207</td>
-    <td align="center">0.455</td>
-    <td align="center">3.534</td>
+    <td align="center">HOTEL</td>
+    <td align="center">0.110</td>
+    <td align="center">0.184</td>
+    <td align="center">0.837</td>
+    <td align="center">0.107</td>
+    <td align="center">0.177</td>
+    <td align="center">0.381</td>
   </tr>
   <tr>
-    <td align="center">100</td>
-    <td align="center">0.208</td>
-    <td align="center">0.454</td>
-    <td align="center">4.149</td>
-    <td align="center">0.204</td>
-    <td align="center">0.451</td>
-    <td align="center">3.293</td>
+    <td align="center">UNIV</td>
+    <td align="center">0.199</td>
+    <td align="center">0.450</td>
+    <td align="center">3.378</td>
+    <td align="center">0.195</td>
+    <td align="center">0.435</td>
+    <td align="center">3.079</td>
+  </tr>
+  <tr>
+    <td align="center">ZARA1</td>
+    <td align="center">0.148</td>
+    <td align="center">0.320</td>
+    <td align="center">0.462</td>
+    <td align="center">0.150</td>
+    <td align="center">0.330</td>
+    <td align="center">0.178</td>
+  </tr>
+  <tr>
+    <td align="center">ZARA2</td>
+    <td align="center">0.114</td>
+    <td align="center">0.250</td>
+    <td align="center">1.027</td>
+    <td align="center">0.114</td>
+    <td align="center">0.255</td>
+    <td align="center">0.993</td>
   </tr>
   <tr>
     <td align="center">Average</td>
-    <td align="center">0.210</td>
-    <td align="center">0.456</td>
-    <td align="center">4.539</td>
-    <td align="center">0.207</td>
-    <td align="center">0.455</td>
-    <td align="center">3.477</td>
-  </tr>  
+    <td align="center">0.192</td>
+    <td align="center">0.403</td>
+    <td align="center">1.372</td>
+    <td align="center">0.191</td>
+    <td align="center">0.398</td>
+    <td align="center">0.926</td>
+  </tr>
 </tbody>
 </table>
 

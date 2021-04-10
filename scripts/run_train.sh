@@ -7,9 +7,7 @@ date
 ###########################
 
 DATASET="${1:-univ}"
-
-DEFAULT=`grep ${DATASET} config/snce.json | awk -F": " '{print $2}'  | awk -F, '{print $1}'`
-WEIGHT="${2:-${DEFAULT}}"
+WEIGHT="${2:-50.0}"
 SEED="${3:-123}"
 
 echo 'DATASET: '${DATASET}
@@ -17,7 +15,7 @@ echo 'WEIGHT: '${WEIGHT}
 echo 'SEED: '${SEED}
 
 MODEL=vel
-EPOCH=100
+EPOCH=300
 
 PREFIX=experiments/pedestrians/models
 METHOD='social'

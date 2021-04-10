@@ -23,7 +23,7 @@ from tensorboardX import SummaryWriter
 # torch.autograd.set_detect_anomaly(True)
 
 from snce.contrastive import SocialNCE
-from snce.model import ProjHead, SpatialEncoder, EventEncoder
+from snce.model import ProjHead, EventEncoder
 
 np.set_printoptions(precision=2, suppress=True)
 torch.set_printoptions(precision=2, sci_mode=False)
@@ -50,10 +50,17 @@ if args.seed is not None:
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
     os.environ['PYTHONHASHSEED'] = str(args.seed)
+    # torch.set_deterministic(True)           # reproducibility for torch==1.7
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(args.seed)
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
+        torch.backends.cudnn.enabled = False
+
+def seed_worker(worker_id):                 # https://pytorch.org/docs/stable/notes/randomness.html
+    worker_seed = torch.initial_seed() % 2**32
+    np.random.seed(worker_seed)
+    random.seed(worker_seed)
 
 def main():
     # Load hyperparameters from json
@@ -105,6 +112,8 @@ def main():
     print('| MHL: %s' % hyperparams['minimum_history_length'])
     print('| PH: %s' % hyperparams['prediction_horizon'])
     print('| Weight: %s' % args.contrastive_weight)
+    # print('| Weight: %s' % args.contrastive_temperature)
+    # print('| Weight: %s' % args.contrastive_dim)
     print('-----------------------')
 
     log_writer = None
@@ -163,9 +172,8 @@ def main():
                                                      pin_memory=False if args.device == 'cpu' else True,
                                                      batch_size=args.batch_size,
                                                      shuffle=True,
-                                                     # shuffle=False,     # TODO
-                                                     # drop_last=False,
-                                                     num_workers=args.preprocess_workers)
+                                                     num_workers=args.preprocess_workers,
+                                                     worker_init_fn=seed_worker)
         train_data_loader[node_type_data_set.node_type] = node_type_dataloader
 
     print(f"Loaded training data from {train_data_path}")
@@ -234,9 +242,9 @@ def main():
     #               NCE             #
     #################################
 
+    print('contrastive_sampling:', args.contrastive_sampling)
     head_projection = ProjHead(feat_dim=128, hidden_dim=32, head_dim=8).to(args.device)
     encoder_sample = EventEncoder(hidden_dim=8, head_dim=8).to(args.device)
-    print('contrastive_sampling:', args.contrastive_sampling)
     snce = SocialNCE(head_projection=head_projection, encoder_sample=encoder_sample, sampling=args.contrastive_sampling)
 
     #################################
@@ -244,17 +252,19 @@ def main():
     if args.load_dir and os.path.exists(args.load_dir):
         print(f"Loaded the pretrained model from {args.load_dir}")
         model_registrar.load_models()
-
-        # head_projection = torch.load(os.path.join(model_dir, 'head_projection.pt'), map_location=args.device)
-        # encoder_sample = torch.load(os.path.join(model_dir, 'encoder_sample.pt'), map_location=args.device)
-        proj_file = os.path.join(model_dir, 'head_projection.pt')
-        if os.path.exists(proj_file):
-            info = head_projection.load_state_dict(torch.load(proj_file, map_location=args.device), strict=True)
-            print('Loaded head_projection:\n', info)
-        encoder_file = os.path.join(model_dir, 'encoder_sample.pt')
-        if os.path.exists(encoder_file):
-            info = encoder_sample.load_state_dict(torch.load(encoder_file, map_location=args.device), strict=True)
-            print('Loaded encoder_sample:\n', info)
+        if not args.pretrain:
+            head_file = os.path.join(model_dir, 'head_projection.pt')
+            if os.path.exists(head_file):
+                info = head_projection.load_state_dict(torch.load(head_file, map_location=args.device), strict=True)
+                print('Loaded head_projection:\n', info)
+            else:
+                print('Skipped head_projection')
+            encoder_file = os.path.join(model_dir, 'encoder_sample.pt')
+            if os.path.exists(encoder_file):
+                info = encoder_sample.load_state_dict(torch.load(encoder_file, map_location=args.device), strict=True)
+                print('Loaded encoder_sample:\n', info)
+            else:
+                print('Skipped encoder_sample')
         print('===================\n')
 
     #################################
@@ -503,10 +513,10 @@ def main():
                                             epoch)
 
         if args.save_every is not None and args.debug is False and epoch % args.save_every == 0:
-            if args.pretrain:
-                torch.save(head_projection.state_dict(), os.path.join(model_dir, 'head_projection-%d.pt' % epoch))
-                torch.save(encoder_sample.state_dict(), os.path.join(model_dir, 'encoder_sample-%d.pt' % epoch))
-            else:
+            if not args.pretrain:
+            #     torch.save(head_projection.state_dict(), os.path.join(model_dir, 'head_projection-%d.pt' % epoch))
+            #     torch.save(encoder_sample.state_dict(), os.path.join(model_dir, 'encoder_sample-%d.pt' % epoch))
+            # else:
                 model_registrar.save_models(epoch, 'w-{:.4f}-s-{:d}'.format(args.contrastive_weight, args.seed))
 
     if args.pretrain:
