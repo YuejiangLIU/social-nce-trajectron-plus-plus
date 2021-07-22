@@ -13,6 +13,7 @@ This is an official implementation of the Social-NCE applied to the Trajectron++
 <a href="https://people.epfl.ch/alexandre.alahi/?lang=en/">Alexandre Alahi</a> at
 <a href="https://www.epfl.ch/labs/vita/">EPFL</a>
 <br>
+to appear at ICCV 2021
 
 TL;DR: Contrastive Representation Learning + Negative Data Augmentations &#129138; Robust Neural Motion Models
 > * Rank in 1st place on the [Trajnet++ challenge](https://www.aicrowd.com/challenges/trajnet-a-trajectory-forecasting-challenge/leaderboards) since November 2020 to present
